@@ -27,6 +27,9 @@
   --blue-dim: rgba(96,165,250,0.12);
   --amber: #b07010;
   --amber-dim: rgba(251,191,36,0.12);
+  --pink: #c0186a;
+  --pink-dim: rgba(219,54,130,0.13);
+  --pink-border: rgba(219,54,130,0.4);
   --radius: 12px;
   --radius-sm: 8px;
 }
@@ -165,7 +168,7 @@ body {
 .toggle-btn:hover { border-color: var(--border2); color: var(--text); }
 .toggle-btn.t-win { background: var(--green-dim); border-color: rgba(74,222,152,0.4); color: var(--green); }
 .toggle-btn.t-lose { background: var(--red-dim); border-color: rgba(240,96,96,0.4); color: var(--red); }
-.toggle-btn.t-first { background: var(--blue-dim); border-color: rgba(96,165,250,0.4); color: var(--blue); }
+.toggle-btn.t-first { background: var(--pink-dim); border-color: var(--pink-border); color: var(--pink); }
 .toggle-btn.t-second { background: var(--amber-dim); border-color: rgba(251,191,36,0.4); color: var(--amber); }
 
 /* SUBMIT BUTTON */
@@ -251,7 +254,7 @@ body {
   display: inline-block; padding: 1px 7px; border-radius: 10px;
   font-size: 11px; font-weight: 500; margin-left: 4px;
 }
-.pill-first { background: var(--blue-dim); color: var(--blue); }
+.pill-first { background: var(--pink-dim); color: var(--pink); }
 .pill-second { background: var(--amber-dim); color: var(--amber); }
 .pill-fmt { background: var(--bg3); color: var(--text3); }
 .battle-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
@@ -326,11 +329,14 @@ body {
   <!-- RECORD TAB -->
   <div id="tab-record">
     <div class="metrics">
-      <div class="metric"><div class="metric-label">総対戦</div><div class="metric-value c-purple" id="m-total">0</div></div>
+      <div class="metric" style="grid-column:1/-1;background:linear-gradient(135deg,#f3f1ff,#fff);border-color:rgba(124,111,224,0.2)">
+        <div class="metric-label" style="font-size:12px;font-weight:700;letter-spacing:.05em">📅 本日の戦績</div>
+      </div>
+      <div class="metric"><div class="metric-label">対戦数</div><div class="metric-value c-purple" id="m-total">0</div></div>
       <div class="metric"><div class="metric-label">勝利</div><div class="metric-value c-green" id="m-win">0</div></div>
       <div class="metric"><div class="metric-label">敗北</div><div class="metric-value c-red" id="m-lose">0</div></div>
       <div class="metric"><div class="metric-label">勝率</div><div class="metric-value" id="m-rate">-%</div></div>
-      <div class="metric"><div class="metric-label">先攻勝率</div><div class="metric-value c-blue" id="m-first">-%</div></div>
+      <div class="metric"><div class="metric-label">先攻勝率</div><div class="metric-value" style="color:var(--pink)" id="m-first">-%</div></div>
       <div class="metric"><div class="metric-label">後攻勝率</div><div class="metric-value c-amber" id="m-second">-%</div></div>
     </div>
 
@@ -417,12 +423,25 @@ body {
         <button class="date-tab active" id="dt-all" onclick="setDateMode('all')">全期間</button>
         <button class="date-tab" id="dt-day" onclick="setDateMode('day')">日単位</button>
         <button class="date-tab" id="dt-month" onclick="setDateMode('month')">月単位</button>
+        <button class="date-tab" id="dt-range" onclick="setDateMode('range')">日付指定</button>
       </div>
       <div id="date-nav-wrap" style="display:none">
         <div class="date-nav">
           <button onclick="shiftDate(-1)">◀</button>
           <div class="date-label" id="date-nav-label"></div>
           <button onclick="shiftDate(1)">▶</button>
+        </div>
+      </div>
+      <div id="date-range-wrap" style="display:none;margin-bottom:10px">
+        <div class="form-grid" style="margin-bottom:0">
+          <div class="form-group">
+            <label>開始日</label>
+            <input type="date" id="range-from" onchange="renderHistory()">
+          </div>
+          <div class="form-group">
+            <label>終了日</label>
+            <input type="date" id="range-to" onchange="renderHistory()">
+          </div>
         </div>
       </div>
       <div class="card-title" style="margin-top:12px;margin-bottom:8px">絞り込み</div>
@@ -432,11 +451,15 @@ body {
           <option>エルフ</option><option>ロイヤル</option><option>ウィッチ</option>
           <option>ドラゴン</option><option>ナイトメア</option><option>ビショップ</option><option>ネメシス</option>
         </select>
+        <input class="filter-input" id="filter-my-deck" placeholder="自分のデッキ名" oninput="renderHistory()">
+      </div>
+      <div class="filter-row">
         <select class="filter-select" id="filter-opp-class" onchange="renderHistory()">
           <option value="">全クラス（相手）</option>
           <option>エルフ</option><option>ロイヤル</option><option>ウィッチ</option>
           <option>ドラゴン</option><option>ナイトメア</option><option>ビショップ</option><option>ネメシス</option>
         </select>
+        <input class="filter-input" id="filter-opp-deck" placeholder="相手デッキ名" oninput="renderHistory()">
       </div>
       <div class="filter-row">
         <select class="filter-select" id="filter-result" onchange="renderHistory()">
@@ -469,7 +492,7 @@ body {
     <div class="fs-row">
       <div class="fs-block">
         <div class="fs-label">先攻勝率</div>
-        <div class="fs-val c-blue" id="s-first-rate">-%</div>
+        <div class="fs-val" style="color:var(--pink)" id="s-first-rate">-%</div>
         <div class="fs-sub" id="s-first-rec">0戦</div>
       </div>
       <div class="fs-block">
@@ -544,7 +567,8 @@ function addBattle(){
     time:bt?new Date(bt).toISOString():new Date().toISOString()
   });
   saveData(); updateAll();
-  ['my-class','opp-class','my-deck','opp-deck','memo'].forEach(id=>document.getElementById(id).value='');
+  // my-class と my-deck はリセットしない
+  ['opp-class','opp-deck','memo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('battle-time').value=nowLocal();
   selectResult(null);selResult=null;
   selectOrder(null);selOrder=null;
@@ -560,22 +584,35 @@ function updateAll(){ updateSummary(); renderHistory(); renderStats(); }
 
 function calcWR(arr){ return arr.length?Math.round(arr.filter(b=>b.result==='win').length/arr.length*100):null; }
 
+function isSameDay(d1,d2){return d1.getFullYear()===d2.getFullYear()&&d1.getMonth()===d2.getMonth()&&d1.getDate()===d2.getDate();}
+
 function updateSummary(){
+  // 記録タブ：本日の戦績
+  const today=new Date();
+  const todayBattles=battles.filter(b=>isSameDay(new Date(b.time),today));
+  const tTotal=todayBattles.length, tWins=todayBattles.filter(b=>b.result==='win').length;
+  const tRate=tTotal?Math.round(tWins/tTotal*100):null;
+  const tfa=todayBattles.filter(b=>b.order==='first'), tsa=todayBattles.filter(b=>b.order==='second');
+  const tfr=calcWR(tfa), tsr=calcWR(tsa);
+  document.getElementById('m-total').textContent=tTotal;
+  document.getElementById('m-win').textContent=tWins;
+  document.getElementById('m-lose').textContent=tTotal-tWins;
+  document.getElementById('m-rate').textContent=tRate!==null?tRate+'%':'-%';
+  document.getElementById('m-first').textContent=tfr!==null?tfr+'%':'-%';
+  document.getElementById('m-second').textContent=tsr!==null?tsr+'%':'-%';
+
+  // 統計タブ：全戦績
   const total=battles.length, wins=battles.filter(b=>b.result==='win').length;
   const rate=total?Math.round(wins/total*100):null;
   const fa=battles.filter(b=>b.order==='first'), sa=battles.filter(b=>b.order==='second');
   const fr=calcWR(fa), sr=calcWR(sa);
-  ['m','s'].forEach(p=>{
-    document.getElementById(p+'-total').textContent=total;
-    document.getElementById(p+'-win').textContent=wins;
-    document.getElementById(p+'-lose').textContent=total-wins;
-    document.getElementById(p+'-rate').textContent=rate!==null?rate+'%':'-%';
-  });
-  document.getElementById('m-first').textContent=fr!==null?fr+'%':'-%';
-  document.getElementById('m-second').textContent=sr!==null?sr+'%':'-%';
-  ['s-first-rate','s-second-rate'].forEach((id,i)=>{
-    const el=document.getElementById(id); if(el)el.textContent=(i===0?fr:sr)!==null?(i===0?fr:sr)+'%':'-%';
-  });
+  document.getElementById('s-total').textContent=total;
+  document.getElementById('s-win').textContent=wins;
+  document.getElementById('s-lose').textContent=total-wins;
+  document.getElementById('s-rate').textContent=rate!==null?rate+'%':'-%';
+  const sfr=document.getElementById('s-first-rate'),ssr=document.getElementById('s-second-rate');
+  if(sfr)sfr.textContent=fr!==null?fr+'%':'-%';
+  if(ssr)ssr.textContent=sr!==null?sr+'%':'-%';
   const sf=document.getElementById('s-first-rec'),ss=document.getElementById('s-second-rec');
   if(sf)sf.textContent=fa.length+'戦 '+fa.filter(b=>b.result==='win').length+'勝';
   if(ss)ss.textContent=sa.length+'戦 '+sa.filter(b=>b.result==='win').length+'勝';
@@ -583,8 +620,11 @@ function updateSummary(){
 
 function setDateMode(m){
   dateMode=m; cursorDate=new Date();
-  ['all','day','month'].forEach(x=>document.getElementById('dt-'+x).classList.toggle('active',x===m));
-  document.getElementById('date-nav-wrap').style.display=m==='all'?'none':'block';
+  ['all','day','month','range'].forEach(x=>{
+    const el=document.getElementById('dt-'+x); if(el)el.classList.toggle('active',x===m);
+  });
+  document.getElementById('date-nav-wrap').style.display=(m==='day'||m==='month')?'block':'none';
+  document.getElementById('date-range-wrap').style.display=m==='range'?'block':'none';
   updateDateLabel(); renderHistory();
 }
 function updateDateLabel(){
@@ -599,7 +639,17 @@ function shiftDate(dir){
   updateDateLabel(); renderHistory();
 }
 function filterByDate(list){
-  if(dateMode==='all')return list;
+  if(dateMode==='all') return list;
+  if(dateMode==='range'){
+    const fromVal=document.getElementById('range-from').value;
+    const toVal=document.getElementById('range-to').value;
+    return list.filter(b=>{
+      const ds=b.time.slice(0,10);
+      if(fromVal&&ds<fromVal)return false;
+      if(toVal&&ds>toVal)return false;
+      return true;
+    });
+  }
   return list.filter(b=>{
     const d=new Date(b.time);
     if(dateMode==='day')return d.getFullYear()===cursorDate.getFullYear()&&d.getMonth()===cursorDate.getMonth()&&d.getDate()===cursorDate.getDate();
@@ -614,11 +664,13 @@ function renderHistory(){
   const foc=document.getElementById('filter-opp-class').value;
   const fr=document.getElementById('filter-result').value;
   const fo=document.getElementById('filter-order').value;
+  const fmd=document.getElementById('filter-my-deck').value.trim().toLowerCase();
   const fod=document.getElementById('filter-opp-deck').value.trim().toLowerCase();
   if(fc)list=list.filter(b=>b.myClass===fc);
   if(foc)list=list.filter(b=>b.oppClass===foc);
   if(fr)list=list.filter(b=>b.result===fr);
   if(fo)list=list.filter(b=>b.order===fo);
+  if(fmd)list=list.filter(b=>(b.myDeck||'').toLowerCase().includes(fmd));
   if(fod)list=list.filter(b=>(b.oppDeck||'').toLowerCase().includes(fod));
 
   const sumEl=document.getElementById('history-summary');
